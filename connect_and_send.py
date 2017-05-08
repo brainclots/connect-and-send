@@ -84,14 +84,13 @@ def main():
         print('Connecting to ' + a_device['host'] + '...')
         try:
             connection = netmiko.ConnectHandler(**a_device)
+            connection.enable()
             if args.configs:
-                connection.enable()
                 print('Sending commands...')
                 connection.send_config_from_file(command_list)
                 path_to_command_list = os.path.abspath(command_list)
                 logger.info('Sending commands from %s', path_to_command_list)
             if args.show_commands:
-                connection.enable()
                 for a_command in show_cmds:
                     banner = ('\n>>>>>>>>>>> ' + a_command.upper() + ' <<<<<<<<<<<<\n')
                     show_result = (connection.send_command(a_command))
