@@ -25,12 +25,13 @@ parser = argparse.ArgumentParser(description='Connect to list of devices and \
                                  run a set of commands on each')
 always_required = parser.add_argument_group('always required')
 always_required.add_argument("devices", nargs=1, help="Name of file containing devices",
-                    metavar='<devices_file>')
+                             metavar='<devices_file>')
 one_or_both = parser.add_argument_group('one (or both) of these')
 one_or_both.add_argument("-c", "--configs", nargs=1, help="Name of file containing commands to \
                     run", metavar='<configure_commands_file>')
-one_or_both.add_argument("-s", "--show-commands",nargs=1, help="Name of file containing show commands \
-                    (for verification)", metavar='<show_commands_file>')
+one_or_both.add_argument("-s", "--show-commands", nargs=1, help="Name of file \
+                         containing show commands (for verification)",
+                         metavar='<show_commands_file>')
 args = parser.parse_args()
 
 # Configure logging
@@ -42,15 +43,18 @@ formatter = logging.Formatter('%(asctime)s - %(message)s\n')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 def open_file(file):
     with open(file) as f:
         content = f.read().strip().splitlines()
         return content
 
-def get_creds(): # Prompt for credentials
+
+def get_creds():  # Prompt for credentials
     username = getpass.getuser()
     password = getpass.getpass()
     return username, password
+
 
 def main():
     device_file = args.devices[0]
@@ -73,11 +77,11 @@ def main():
                           netmiko.ssh_exception.NetMikoAuthenticationException)
 
     for a_device in devices:
-        a_device = {'host' : a_device ,
-                    'device_type' : 'cisco_ios' ,
-                    'username' : username ,
-                    'password' : password ,
-                    'secret' : password
+        a_device = {'host': a_device,
+                    'device_type': 'cisco_ios',
+                    'username': username,
+                    'password': password,
+                    'secret': password
                     }
 
         print('-'*79)
@@ -85,6 +89,7 @@ def main():
         try:
             connection = netmiko.ConnectHandler(**a_device)
             connection.enable()
+            outfile = a_device + '.show'
             if args.configs:
                 print('Sending commands...')
                 connection.send_config_from_file(command_list)
@@ -114,5 +119,6 @@ def main():
         except netmiko_exceptions as e:
             print('Failed to connect: %s' % e)
             logger.error('Failed to connect %s', e)
+
 
 main()
