@@ -19,6 +19,7 @@ import netmiko
 import getpass
 import logging
 import os
+from datetime import datetime
 
 # Set up argument parser and help info
 parser = argparse.ArgumentParser(description='Connect to list of devices and \
@@ -89,7 +90,7 @@ def main():
         try:
             connection = netmiko.ConnectHandler(**a_device)
             connection.enable()
-            outfile = a_device + '.show'
+            outfile = a_device['host'] + '.show'
             if args.configs:
                 print('Sending commands...')
                 connection.send_config_from_file(command_list)
@@ -99,7 +100,12 @@ def main():
                 for a_command in show_cmds:
                     banner = ('\n>>>>>>>>>>> ' + a_command.upper() + ' <<<<<<<<<<<<\n')
                     show_result = (connection.send_command(a_command))
+                    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     print(banner + show_result)
+                    f = open(outfile, 'a+')
+                    f.write('Output obtained ' + now + '\n' +
+                            banner + show_result + '\n')
+                    f.close()
                     logger.info('%s %s %s', a_device['host'], banner, show_result )
                 if args.configs:
                     good_to_go = raw_input('\nCheck the output, ' +
