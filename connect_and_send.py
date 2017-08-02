@@ -11,8 +11,8 @@ Author:
             |__] |  \ | |  | | \|    | \_ |___ |__|  |   /__
             Brian.Klotz@nike.com
 
-Version:    0.3
-Date:       April 2017
+Version:    1.0
+Date:       August 2017
 '''
 import argparse
 import netmiko
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler('output.log')
 handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(message)s\n')
+formatter = logging.Formatter('%(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -77,6 +77,8 @@ def main():
     netmiko_exceptions = (netmiko.ssh_exception.NetMikoTimeoutException,
                           netmiko.ssh_exception.NetMikoAuthenticationException)
 
+    start = datetime.now()
+    print('Start time: ' + str(start))
     for a_device in devices:
         a_device = {'host': a_device,
                     'device_type': 'cisco_ios',
@@ -106,25 +108,32 @@ def main():
                     f.write('Output obtained ' + now + '\n' +
                             banner + show_result + '\n')
                     f.close()
-                    logger.info('%s %s %s', a_device['host'], banner, show_result )
+                    logger.info('%s %s %s', a_device['host'],
+                                banner, show_result)
                 if args.configs:
                     good_to_go = raw_input('\nCheck the output, ' +
-                                            'OK to save? (y/n): ').lower()
+                                           'OK to save? (y/n): ').lower()
                     if good_to_go == 'y':
                         connection.send_command('write mem')
                         print('Configuration saved')
                     else:
-                        print('Configuration was NOT saved, ' + \
+                        print('Configuration was NOT saved, ' +
                               'back out changes manually (or reload)')
             else:
                 connection.send_command('write mem')
-                print('Commands sent and saved to startup-config on ' + a_device['host'])
+                print('Commands sent and saved to startup-config on ' +
+                      a_device['host'])
 
             connection.disconnect()
 
         except netmiko_exceptions as e:
             print('Failed to connect: %s' % e)
             logger.error('Failed to connect %s', e)
+
+    end = datetime.now()
+    print('End time: ' + str(end))
+    elapsed = end - start
+    print('Elapsed time: ' + str(elapsed))
 
 
 main()
